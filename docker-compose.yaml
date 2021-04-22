@@ -1,0 +1,58 @@
+version: "3"
+
+services:
+  ssia181-database:
+    image: mysql
+    container_name: ssia181-mysql
+    networks:
+      - ssia181-network
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=curt-secret
+      - MYSQL_DATABASE=spring
+      - MYSQL_USER=curt
+      - MYSQL_PASSWORD=curt-secret
+    volumes:
+      - mysql-ssia181-volume:/var/lib/mysql
+
+  kc-database:
+    image: postgres
+    container_name: keycloak-postgres
+    networks:
+      - kc-network
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=ssia-kc0
+      - POSTGRES_USER=curt
+      - POSTGRES_PASSWORD=curt-secret
+    volumes:
+      - postgres-kc0-volume:/var/lib/postgresql/data
+
+  ssia181-keycloak-service:
+    image: quay.io/keycloak/keycloak:12.0.4
+    container_name: ssia181-keycloak-service
+    networks:
+      - kc-network
+    ports:
+      - 8080:8080
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - DB_VENDOR=postgres
+      - DB_ADDR=host.docker.internal
+      - DB_PORT=5432
+      - DB_DATABASE=ssia-kc0
+      - DB_USER=curt
+      - DB_PASSWORD=curt-secret
+    depends_on:
+      - kc-database
+
+networks:
+  ssia181-network:
+  kc-network:
+
+volumes:
+  mysql-ssia181-volume:
+  postgres-kc0-volume:
